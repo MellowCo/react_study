@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+
+  <script src="../js/babel.min.js"></script>
+  <script src="../js/react.development.js"></script>
+  <script src="../js/react-dom.development.js"></script>
+
+  <style>
+    .red_font {
+      color: red;
+    }
+  </style>
+
+  <!-- 使用babel 转换jsx -->
+  <script type="text/babel">
+    const text = 'hello,react'
+    const reactId = 'id'
+    const data = ['angular', 'vue', 'react']
+
+    // jsx 语法注意
+    // js表达式使用 {} 接收
+    // class类名 需要使用 className 代替
+    // style内敛 使用 {{key:value}} 对象形式表示
+    // 使用map 遍历生成li
+
+    const vdom = (
+      <h1 id={reactId}>
+        <span className='red_font' style={{ fontSize: '20px', backgroundColor: 'blue' }}>
+          {text}
+        </span>
+
+        <ul>
+          {data.map((value, index) => (
+            <li key={index}>{value}</li>
+          ))}
+        </ul>
+      </h1>
+    )
+    // render(虚拟节点,容器)
+    ReactDOM.render(vdom, document.getElementById('app'))
+  </script>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+
+  <script src="../js/babel.min.js"></script>
+  <script src="../js/react.development.js"></script>
+  <script src="../js/react-dom.development.js"></script>
+
+  <script type="text/babel">
+    class MyClassComponent extends React.Component {
+      constructor(props) {
+        super(props)
+
+        this.state = {
+          info: '类组件'
+        }
+      }
+
+      render() {
+        return <h1>{this.state.info}</h1>
+      }
+    }
+
+    ReactDOM.render(<MyClassComponent />, document.getElementById('app'))
+  </script>
+</html>
