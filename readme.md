@@ -508,3 +508,159 @@ class RefComponent extends React.Component {
   }
 }
 ```
+
+# 生命周期
+
+## 1 通过生命周期 卸载定时器
+
+```js
+class Life extends React.Component {
+  death = () => {
+    // 卸载组件的方法
+    ReactDOM.unmountComponentAtNode(document.getElementById('app'))
+  }
+
+  state = {
+    opacity: 1
+  }
+
+  // 组件挂载完成
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      let { opacity } = this.state
+
+      this.setState({
+        opacity: opacity <= 0 ? 1 : opacity - 0.1
+      })
+    }, 200)
+  }
+
+  // 组件被卸载
+  componentWillUnmount() {
+    clearInterval(this.timer)
+  }
+
+  render() {
+    return (
+      <div>
+        <h1 style={{ opacity: this.state.opacity }}>React Life</h1>
+        <button onClick={this.death}>卸载</button>
+      </div>
+    )
+  }
+}
+
+ReactDOM.render(<Life />, document.getElementById('app'))
+```
+
+## 2 react 生命周期-旧
+
+![](<https://gitee.com/mellowco/BlobImg/raw/master/img/react%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F(%E6%97%A7).png>)
+
+1. 初始化阶段: 由 ReactDOM.render()触发---初次渲染
+   1. constructor()
+   2. componentWillMount()
+   3. render()
+   4. componentDidMount() 开启定时器，发送网络请求，订阅消息
+2. 更新阶段: 由组件内部 this.setSate()或父组件重新 render 触发
+   1. shouldComponentUpdate()
+   2. componentWillUpdate()
+   3. render()
+   4. componentDidUpdate()
+3. 卸载组件: 由 ReactDOM.unmountComponentAtNode()触发
+   1. componentWillUnmount() 关闭定时器，取消订阅消息
+
+- shouldComponentUpdate
+  - 返回值判断组件是否可以更新
+
+```js
+shouldComponentUpdate(){
+  // 返回false 则不触发setState的数据更新
+  return false //true
+}
+```
+
+- forceUpdate
+  - 不更改数据 强制刷新组件
+
+```js
+force = () => {
+  this.forceUpdate()
+}
+```
+
+- componentWillReceiveProps
+  - 当父组件传递的 props 发生变化时 触发
+
+```js
+class A extends React.Component {
+  state = {
+    num: 1
+  }
+
+  addNum = () => {
+    const { num } = this.state
+    this.setState({
+      num: num + 1
+    })
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>this is A</h1>
+        <button onClick={this.addNum}>加1</button>
+        <B num={this.state.num} />
+      </div>
+    )
+  }
+}
+
+class B extends React.Component {
+  // 点击 加1 按钮，改变props，触发
+  componentWillReceiveProps() {
+    console.log('B---componentWillReceiveProps')
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>this is B, num:{this.props.num}</h1>
+      </div>
+    )
+  }
+}
+```
+
+## 3 react 生命周期-新
+
+![](<https://gitee.com/mellowco/BlobImg/raw/master/img/react%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F(%E6%96%B0).png>)
+
+- 删除了 `componentWillMount`,`componentWillUpdate`,`componentWillReceiveProps`
+- 新增 `getDerivedStateFromProps`,`getSnapshotBeforeUpdate`
+
+### getDerivedStateFromProps
+
+- 方法需要是用 static
+- 其返回值会覆盖原有 state,state 中的数据**不能通过 setState 更改**
+- 基本不使用
+
+```js
+state = {
+  count:1
+}
+
+static getDerivedStateFromProps(props,state){
+  // props :{count :100}
+  return props
+}
+
+// 100
+<div>count:{this.state.count}</div>
+```
+
+[getDerivedStateFromProps 文档](https://react.docschina.org/docs/react-component.html#static-getderivedstatefromprops)
+
+### getSnapshotBeforeUpdate
+
+[getSnapshotBeforeUpdate 文档](https://react.docschina.org/docs/react-component.html#static-getSnapshotBeforeUpdate)
