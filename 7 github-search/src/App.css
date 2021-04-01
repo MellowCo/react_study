@@ -1,0 +1,24 @@
+.album {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  min-height: 50rem; /* Can be removed; just added for demo purposes */
+  background-color: #f7f7f7;
+}
+
+.card {
+  float: left;
+  margin-bottom: 2rem;
+  padding: .75rem;
+  border: 1px solid #efefef;
+  width: 33.333%;
+  text-align: center;
+}
+
+.card > img {
+  margin-bottom: .75rem;
+  border-radius: 100px;
+}
+
+.card-text {
+  font-size: 85%;
+}
