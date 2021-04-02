@@ -1582,12 +1582,10 @@ export default withRouter(Header)
 #  redux
 
 * redux是一个专门用于做**状态管理**的JS库(不是react插件库)。
-
 * 它可以用在react, angular, vue等项目中, 但基本与**react**配合使用。
-
 * 作用: 集中式管理react应用中多个组件**共享**的状态。
 
-![image-20210330221301664](https://gitee.com/MellowCo/BlobImg/raw/master/image-20210330221301664.png)
+![](https://gitee.com/MellowCo/BlobImg/raw/master/redux%E5%8E%9F%E7%90%86%E5%9B%BE.png)
 
 ## 1 三个核心概念
 
