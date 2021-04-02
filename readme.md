@@ -1879,6 +1879,209 @@ export default class Count extends Component {
 }
 ```
 
+## 优化
+
+### container简写
+
+```js
+// 简写方法
+export default connect(
+  (state) => ({
+    count: state
+  }),
+  {
+    increase: createIncreaseAction,
+    decrease: createDecreaseAction,
+    increaseAsync: createAsyncIncreaseAction
+  }
+)(CountUI)
+```
+
+### 在index中通过Provider组件统一管理store
+
+index
+
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './App'
+
+import { Provider } from 'react-redux'
+import store from './store'
+
+// 在index中通过Provider组件统一管理store
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+)
+
+// 使用 react-redux 不需要手动监听数据变化
+// store.subscribe(()=>{
+// 	ReactDOM.render(<App/>,document.getElementById('root'))
+// })
+```
+
+app
+
+```js
+import './App.css'
+import Count from './container/Count'
+import React, { Component } from 'react'
+// import store from './store'
+
+export default class App extends Component {
+  render() {
+    return (
+      // <Count store={store}/>
+      // 在index中 统一设置store
+      <Count />
+    )
+  }
+}
+```
+
+### 文件优化(合并UI组件和容器组件)
+
+```js
+import React, { Component } from 'react'
+import { Select } from 'antd'
+import { Button } from 'antd'
+import { connect } from 'react-redux'
+import { createAsyncIncreaseAction, createDecreaseAction, createIncreaseAction } from '../../store/count_action'
+
+const { Option } = Select
+
+class Count extends Component {
+    .....
+}
+
+export default connect(
+  (state) => ({
+    count: state
+  }),
+  {
+    increase: createIncreaseAction,
+    decrease: createDecreaseAction,
+    increaseAsync: createAsyncIncreaseAction
+  }
+)(Count)
+```
+
+## 多个组件共享数据
+
+### 1 合并 `reducer`
+
+* redux/index.js
+
+> 通过 combineReducers，传入一个对象，通过key-value管理不同的 reducer
+
+```js
+import { createStore, applyMiddleware, combineReducers } from 'redux'
+// count的Reducer 和 person的Reducer
+import countReducer from './reducer/count'
+import personReducer from './reducer/person'
+
+// 引入 redux-thunk 用于支持异步action
+import thunk from 'redux-thunk'
+
+// 通过 combineReducers 合并Reducer
+const allReducers = combineReducers({
+  countData: countReducer,
+  personsData: personReducer
+})
+
+// 通过applyMiddleware 加载thunk 中间件
+export default createStore(allReducers, applyMiddleware(thunk))
+```
+
+### 2 在`Person`的容器组件中使用count和person数据
+
+```js
+import React, { Component } from 'react'
+import { Form, Input, Button } from 'antd'
+import { connect } from 'react-redux'
+import { createAddUserAction } from '../../redux/action/person'
+import { nanoid } from 'nanoid'
+
+class Person extends Component {
+  state = {
+    name: '',
+    age: ''
+  }
+
+  handleUserName = ({ target: { value: name } }) => {
+    this.setState({
+      name
+    })
+  }
+
+  handleAge = ({ target: { value: age } }) => {
+    this.setState({
+      age
+    })
+  }
+
+  addUser = () => {
+    const { name, age } = this.state
+    // 使用redux中 操作状态的方法
+    const { add } = this.props
+    add({ id: nanoid(), name, age })
+  }
+
+  render() {
+    // 获取redux中 管理的persons和count数据
+    const { persons, count } = this.props
+    return (
+      <div>
+        <Form name='horizontal_login' layout='inline'>
+          <Form.Item name='username'>
+            <Input placeholder='姓名' onChange={this.handleUserName} />
+          </Form.Item>
+          <Form.Item name='password'>
+            <Input placeholder='年龄' onChange={this.handleAge} />
+          </Form.Item>
+          <Form.Item>
+            <Button type='primary' onClick={this.addUser}>
+              添加
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <ul>
+          {persons.map(({ id, name, age }) => (
+            <li key={id}>
+              {id}===={name}==={age}
+            </li>
+          ))}
+        </ul>
+
+        <h2>这是count组件的数据：{count}</h2>
+      </div>
+    )
+  }
+}
+
+// 由于合并了 reducer
+// 通过key 获取 reducer 中的数据
+export default connect(
+  // 在person组件中 使用count的数据
+  ({ personsData, countData }) => ({
+    persons: personsData,
+    count: countData
+  }),
+  {
+    add: createAddUserAction
+  }
+)(Person)
+
+```
+
+
+
+
+
 
 
 

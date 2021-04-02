@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import App from './App'
 
 import { Provider } from 'react-redux'
-import store from './store'
+import store from './redux'
 
 // 在index中通过Provider组件统一管理store
 ReactDOM.render(
