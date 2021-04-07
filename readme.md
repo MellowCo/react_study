@@ -2078,11 +2078,590 @@ export default connect(
 
 ```
 
+# serve
+
+> 通过serve 开启一个本地服务 运行打包的项目
+
+```bash
+yarn build
+yarn add golbal serve
+serve build
+```
 
 
 
+# 扩展
+
+## 1 setState
+
+> setState两种方式 对象和函数
+
+```js
+(1). setState(stateChange, [callback])------对象式的setState
+    1.stateChange为状态改变对象(该对象可以体现出状态的更改)
+    2.callback是可选的回调函数, 它在状态更新完毕、界面也更新后(render调用后)才被调用
+
+(2). setState(updater, [callback])------函数式的setState
+    1.updater为返回stateChange对象的函数。
+    2.updater可以接收到state和props。
+    4.callback是可选的回调函数, 它在状态更新、界面也更新后(render调用后)才被调用。
+总结:
+1.对象式的setState是函数式的setState的简写方式(语法糖)
+2.使用原则：
+    (1).如果新状态不依赖于原状态 ===> 使用对象方式
+    (2).如果新状态依赖于原状态 ===> 使用函数方式
+    (3).如果需要在setState()执行后获取最新的状态数据, 
+        要在第二个callback函数中读取
+```
+
+* App.js
+
+```js
+import React, { Component } from 'react'
+import Demo from './components/1_setState'
+
+export default class App extends Component {
+  render() {
+    return (
+      <div>
+        <Demo data={2}/>
+      </div>
+    )
+  }
+}
+```
+
+* Demo.jsx
+
+```js
+import React, { Component } from 'react'
+
+export default class Demo extends Component {
+  state = {
+    number: 0
+  }
+
+  add = () => {
+    // 1 对象
+    const { number } = this.state
+    const { data } = this.props
+    this.setState(
+      {
+        number: number + data
+      },
+      () => {
+        //! setState的第二个参数:组件更新后的回调
+        console.log('更新后的数据', this.state.number)
+      }
+    )
+
+    // 2 函数（state,props）
+    this.setState(
+      ({ number }, { data }) => ({ number: number + data }),
+      () => {
+        //! setState的第二个参数:组件更新后的回调
+        console.log('更新后的数据', this.state.number)
+      }
+    )
+
+    //! setState是异步更新的
+    console.log('setState后的数据', this.state.number)
+  }
+
+  render() {
+    const { number } = this.state
+
+    return (
+      <div>
+        <h1>Num: {number}</h1>
+        <button onClick={this.add}>+1</button>
+      </div>
+    )
+  }
+}
+```
+
+![image-20210404144904282](C:\Users\lcl\AppData\Roaming\Typora\typora-user-images\image-20210404144904282.png)
 
 
 
+## 2 组件懒加载
 
+```js
+// 通过lazy 懒加载组件
+import React, { Component, lazy, Suspense } from 'react'
+
+const About = lazy(() => import('./About'))
+const Home = lazy(() => import('./Home'))
+
+<NavLink className='list-group-item' to='/about'>
+    About
+</NavLink>
+<NavLink className='list-group-item' to='/home'>
+    Home
+</NavLink>
+
+// 使用Suspense 包含懒加载的组件
+// 通过fallback 指定懒加载过程中显示的loading组件
+<Suspense fallback={<h1>Loading....</h1>}>
+    <Route component={About} path='/about'></Route>
+    <Route component={Home} path='/home'></Route>
+    <Redirect to='/home'></Redirect>
+</Suspense>
+```
+
+## 3 hooks
+
+### 1 State Hook
+
+*  State Hook让函数组件也可以有state状态, 并进行状态数据的读写操作
+*  语法: const [xxx, setXxx] = React.useState(initValue)  
+*  useState()说明:
+  * 参数: 第一次初始化指定的值在内部作缓存
+  * 返回值: 包含2个元素的数组, 第1个为内部当前状态值, 第2个为更新状态值的函数
+* setXxx()2种写法:
+  *  setXxx(newValue): 参数为非函数值, 直接指定新的状态值, 内部用其覆盖原来的状态值
+  *  setXxx(value => newValue): 参数为函数, 接收原本的状态值, 返回新的状态值, 内部用其覆盖原来的状态值
+
+```js
+import React, { useState } from 'react'
+
+export default function Demo() {
+  //[当前状态的值,更新状态的方法]
+  const [number, setNumber] = useState(0)
+  const [name, setName] = useState('li')
+
+  function add() {
+    // 1 直接设置值
+    // setNumber(number + 1)
+    setName(name === 'li' ? 'wang' : 'li')
+
+    //2 函数形式
+    setNumber((val) => val + 1)
+  }
+
+  return (
+    <div>
+      <h1>数字:{number}</h1>
+      <h1>姓名:{name}</h1>
+      <button onClick={add}>+1</button>
+    </div>
+  )
+}
+```
+
+### 2 Effect Hook
+
+* `userEffect`可看作 `componentDidMount`，`componentDidUpdate` 和 `componentWillUnmount` 这三个函数的组合
+
+```js
+import React, { useEffect, useState } from 'react'
+import { unmountComponentAtNode } from 'react-dom'
+
+export default function Demo() {
+  //[当前状态的值,更新状态的方法]
+  const [number, setNumber] = useState(0)
+  const [name, setName] = useState('li')
+
+  // 第2个参数 为空
+  // 每次数据更新 都会执行该回调函数
+  // 相当于componentDidMount componentDidUpdate componentWillUnmount
+  useEffect(() => {
+    console.log('update....')
+    // 组件卸载的回调
+    return () => {
+      console.log('update Unmount')
+    }
+  })
+
+  // 第2个参数 为空数组
+  // 只会在组件挂载时 执行一次
+  // componentDidMount componentWillUnmount
+  useEffect(() => {
+    console.log('Mount....')
+    // 组件卸载的回调
+    return () => {
+      console.log('Mount Unmount')
+    }
+  }, [])
+
+  // 监听number number发送变化执行一次
+  useEffect(() => {
+    console.log('number改变了')
+    // 组件卸载的回调
+    return () => {
+      console.log('number Unmount')
+    }
+  }, [number])
+
+  // 监听name
+  useEffect(() => {
+    console.log('name改变了')
+    // 组件卸载的回调
+    return () => {
+      console.log('name Unmount')
+    }
+  }, [name])
+
+  // 监听多个状态
+  useEffect(() => {
+    console.log('监听name和number')
+  }, [name, number])
+
+  function change() {
+    setName(name === 'li' ? 'wang' : 'li')
+  }
+
+  function add() {
+    setNumber((val) => val + 1)
+  }
+
+  function destroy() {
+    unmountComponentAtNode(document.getElementById('root'))
+  }
+
+  return (
+    <div>
+      <h1>数字:{number}</h1>
+      <h1>姓名:{name}</h1>
+      <button onClick={add}>+1</button>
+      <button onClick={change}>改名</button>
+      <button onClick={destroy}>卸载</button>
+    </div>
+  )
+}
+```
+
+### 3 Ref Hook
+
+*  Ref Hook可以在函数组件中存储/查找组件内的标签或任意其它数据
+*  语法: const refContainer = useRef()
+*  作用:保存标签对象,功能与React.createRef()一样
+
+```js
+<input type='text' ref={inputRef} />
+    
+const inputRef = useRef()
+
+
+function change() {
+  setName(inputRef.current.value)
+}
+```
+
+## 4 Fragment
+
+> 代替组件根标签
+
+* 也可以使用 `<></>`
+* `Fragment` 只能设置`key`属性
+
+```js
+import React, { Component, Fragment } from 'react'
+
+export default class Demo extends Component {
+  render() {
+    return (
+      <Fragment key={1}>
+        <input type='text' />
+        <input type='text' />
+      </Fragment>
+	
+	  <>
+       <input type='text' />
+        <input type='text' />   
+      </>
+    )
+  }
+}
+```
+
+## 5 Content
+
+* 一种组件间通信方式, 常用于【祖组件】与【后代组件】间通信
+
+```jsx
+1) 创建Context容器对象：
+	const XxxContext = React.createContext()  
+	
+2) 渲染子组时，外面包裹xxxContext.Provider, 通过value属性给后代组件传递数据：
+	<xxxContext.Provider value={数据}>
+		子组件
+    </xxxContext.Provider>
+    
+3) 后代组件读取数据：
+
+//第一种方式:仅适用于类组件 
+static contextType = xxxContext  // 声明接收context
+this.context // 读取context中的value数据
+
+//第二种方式: 函数组件与类组件都可以
+<xxxContext.Consumer>
+    {
+        value => ( // value就是context中的value数据
+        要显示的内容
+        )
+	}
+</xxxContext.Consumer>
+```
+
+* 完成A向C组件传值
+
+![image-20210405184250868](C:\Users\lcl\AppData\Roaming\Typora\typora-user-images\image-20210405184250868.png)
+
+* A.jsx
+
+```jsx
+import React, { Component } from 'react'
+import B from './B'
+import './index.css'
+import MyContent from './MyContent'
+
+export default class A extends Component {
+  state = {
+    name: 'A name',
+    age: 20
+  }
+
+  change = () => {
+    this.setState({
+      name: 'A name2',
+      age: 202
+    })
+  }
+
+  render() {
+    const { name, age } = this.state
+
+    return (
+      <div className='a'>
+        <h1>这是A组件</h1>
+        <h1>name：{name}</h1>
+        <h1>age：{age}</h1>
+        <MyContent.Provider value={{ name, age }}>
+          <B></B>
+        </MyContent.Provider>
+
+        <button onClick={this.change}>change</button>
+      </div>
+    )
+  }
+}
+```
+
+* B.jsx
+
+```jsx
+import React, { Component } from 'react'
+import C from './C'
+import './index.css'
+
+export default class B extends Component {
+  render() {
+    return (
+      <div className='b'>
+        <h1>这是B组件</h1>
+        <C></C>
+      </div>
+    )
+  }
+}
+```
+
+* C.jsx
+
+```jsx
+import React, { Component } from 'react'
+import './index.css'
+import MyContent from './MyContent'
+
+// 适用于类组件
+// export default class C extends Component {
+//   static contextType = MyContent
+
+//   render() {
+//     const { name, age } = this.context
+
+//     return (
+//       <div className='c'>
+//         <h1>这是C组件</h1>
+//         <h1>
+//           A组件的name：{name}，age：{age}
+//         </h1>
+//       </div>
+//     )
+//   }
+// }
+
+// 函数组件与类组件都可以
+export default function C() {
+  return (
+    <div className='c'>
+      <h1>这是C组件</h1>
+      <MyContent.Consumer>
+        {({ name, age }) => (
+          <h1>
+            A组件的name：{name}，age：{age}
+          </h1>
+        )}
+      </MyContent.Consumer>
+    </div>
+  )
+}
+
+```
+
+* MyContent.js
+
+```js
+import {createContext} from 'react'
+
+const MyContent =  createContext()
+
+export default MyContent
+```
+
+## 6 组件优化
+
+### Component的2个问题 
+
+> 1. 只要执行setState(),即使不改变状态数据, 组件也会重新render() ==> 效率低
+>
+> 2. 只当前组件重新render(), 就会自动重新render子组件，纵使子组件没有用到父组件的任何数据 ==> 效率低
+
+### 优化
+
+* 只有当组件的state或props数据发生改变时才重新render()
+
+* Component中的shouldComponentUpdate()总是返回true
+
+```
+办法1: 
+	重写shouldComponentUpdate()方法
+	比较新旧state或props数据, 如果有变化才返回true, 如果没有返回false
+办法2:  
+	使用PureComponent
+	PureComponent重写了shouldComponentUpdate(), 只有state或props数据有变化才返回true
+	注意: 
+		只是进行state和props数据的浅比较, 如果只是数据对象内部数据变了, 返回false  
+		不要直接修改state数据, 而是要产生新数据
+项目中一般使用PureComponent来优化
+```
+
+1. 重写shouldComponentUpdate
+
+```jsx
+export default class Parent extends Component {
+
+	state = {carName:"奔驰c36"}
+
+	changeCar = ()=>{
+		this.setState({carName:'迈巴赫'})
+	}
+
+	shouldComponentUpdate(nextProps,nextState){
+		// console.log(this.props,this.state); //目前的props和state
+		// console.log(nextProps,nextState); //接下要变化的目标props，目标state
+		return !this.state.carName === nextState.carName
+	} 
+
+	render() {
+		console.log('Parent---render');
+		const {carName} = this.state
+		return (
+			<div className="parent">
+				<h3>我是Parent组件</h3>
+				{this.state.stus}&nbsp;
+				<span>我的车名字是：{carName}</span><br/>
+				<button onClick={this.changeCar}>点我换车</button>
+			</div>
+		)
+	}
+}
+```
+
+2. 更改继承类，继承`PureComponent`
+
+```jsx
+import React, { PureComponent } from 'react'
+import './index.css'
+
+export default class Parent extends PureComponent {
+
+	state = {carName:"奔驰c36"}
+
+	changeCar = ()=>{
+		this.setState({carName:'迈巴赫'})
+	}
+
+	render() {
+		console.log('Parent---render');
+		const {carName} = this.state
+		return (
+			<div className="parent">
+				<h3>我是Parent组件</h3>
+				{this.state.stus}&nbsp;
+				<span>我的车名字是：{carName}</span><br/>
+				<button onClick={this.changeCar}>点我换车</button>
+			</div>
+		)
+	}
+}
+```
+
+## 7 插槽
+
+> Vue中: 
+> 	使用slot技术, 也就是通过组件标签体传入结构  <A><B/></A>
+> React中:
+> 	使用children props: 通过组件标签体传入结构
+> 	使用render props: 通过组件标签属性传入结构,而且可以携带数据，一般用render函数属性
+
+### render props
+
+	<A render={(data) => <C data={data}></C>}></A>
+	A组件: {this.props.render(内部state数据)}
+	C组件: 读取A组件传入的数据显示 {this.props.data} 
+
+```jsx
+import React, { Component } from 'react'
+import './index.css'
+import C from '../1_setState'
+
+export default class Parent extends Component {
+	render() {
+		return (
+			<div className="parent">
+				<h3>我是Parent组件</h3>
+				<A render={(name)=><C name={name}/>}/>
+			</div>
+		)
+	}
+}
+
+class A extends Component {
+	state = {name:'tom'}
+	render() {
+		console.log(this.props);
+		const {name} = this.state
+		return (
+			<div className="a">
+				<h3>我是A组件</h3>
+				{this.props.render(name)}
+			</div>
+		)
+	}
+}
+
+class B extends Component {
+	render() {
+		console.log('B--render');
+		return (
+			<div className="b">
+				<h3>我是B组件,{this.props.name}</h3>
+			</div>
+		)
+	}
+}
+```
 
