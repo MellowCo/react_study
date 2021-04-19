@@ -2349,6 +2349,91 @@ function change() {
 }
 ```
 
+###  4 useCallback
+
+* 缓存方法
+
+```js
+import React, { useEffect, useState } from 'react'
+import { useCallback } from 'react'
+
+export default function Demo() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    setInterval(() => {
+      setCount((state) => state + 1)
+    }, 1000)
+  }, [])
+
+  // 当第二个参数为 [] 默认初始化一次
+  // 将改方法缓存 打印的count 为0
+  // const handleClick = useCallback(() => {
+  //   console.log(count) // 0
+  // }, [])
+
+  // count变化重新生成方法
+  const handleClick = useCallback(() => {
+    console.log(count) // 0
+  }, [count])
+
+  return <h1 onClick={handleClick}>{count}</h1>
+}
+
+```
+
+#### 5 useMemo
+
+* 缓存数据 相当于 vue 的 computer
+
+```js
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo
+} from 'react'
+
+export default function Demo() {
+  const [count, setCount] = useState(0)
+  const [other, setOther] = useState(0)
+
+  console.log('更新了...', Date.now())
+
+  useEffect(() => {
+    setInterval(() => {
+      setCount((state) => state + 1)
+    }, 2000)
+
+    setInterval(() => {
+      setOther((state) => state + 1)
+    }, 500)
+  }, [])
+
+  // const result = count * 2
+
+  const result = useMemo(() => {
+    console.log('--------result-------')
+    // 缓存 result
+    // count变化 result才会重新创建
+    return count * 2
+  }, [count])
+
+  return (
+    <h1 style={{ textAlign: 'center' }}>
+      {other}-{count}-{result}
+    </h1>
+  )
+}
+
+```
+
+
+
+![](https://gitee.com/MellowCo/BlobImg/raw/master/20210419211805.png)
+
+
+
 ## 4 Fragment
 
 > 代替组件根标签
