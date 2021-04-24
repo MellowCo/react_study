@@ -2750,3 +2750,30 @@ class B extends Component {
 }
 ```
 
+## 8 PureComponent memo
+
+```js
+import React, { PureComponent,memo } from 'react'
+
+export default class Foo extends PureComponent {
+
+	render() {
+		
+		return (
+			<div>
+				{this.props.count}
+			</div>
+		)
+	}
+}
+
+
+const Foo = memo({count}=>{
+    return (
+        <div>
+            {count}
+        </div>
+    )
+})
+```
+
